@@ -47,7 +47,7 @@ def update_vector_db(split_docs):
     
     # If there are new docs, generate an id and add them to the db
     if new_docs:
-        new_ids = [generate_id(doc.page_content) for doc in new_docs]
+        new_ids = [doc.metadata["id"] for doc in new_docs]
         db.add_documents(new_docs, ids=new_ids)
         db.persist()
 
