@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import hashlib
 import os
 
-FILE_PATH = "./data/general_astronomy_textbook.pdf"
+FILE_PATH = "./data/Astronomy-For-Mere-Mortals-v-23.pdf"
 DB_PATH = "./chroma"
 
 def generate_id(content):
@@ -19,7 +19,7 @@ def load_documents():
 
 def split_documents(docs):
     # Split documents into smaller chunks
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=500, length_function=len, is_separator_regex=False)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50, length_function=len, is_separator_regex=False)
     split_docs = text_splitter.split_documents(docs)
 
     # Add "id" field to chunk metadata
