@@ -2,12 +2,16 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
-from dotenv import load_dotenv
 import hashlib
 import os
+import shutil
 
 FILE_PATH = "./data/Astronomy-For-Mere-Mortals-v-23.pdf"
 DB_PATH = "./chroma"
+
+def main():
+    split_text = split_documents(load_documents())
+    update_vector_db(split_text)
 
 def generate_id(content):
     return hashlib.md5(content.encode()).hexdigest()
@@ -55,5 +59,9 @@ def update_vector_db(split_docs):
     else:
         print("No new documents were saved to the database.")
 
-split_text = split_documents(load_documents())
-update_vector_db(split_text)
+def clear_database():
+    if (os.path.exists(DB_PATH)):
+        shutil.rmtree(DB_PATH)
+
+if __name__ == "__main__":
+    main()
