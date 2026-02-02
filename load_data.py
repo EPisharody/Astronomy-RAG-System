@@ -1,15 +1,19 @@
-from langchain_community.document_loaders import PyPDFLoader
+# from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.document_loaders import PyPDFDirectoryLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 import hashlib
 import os
 import shutil
 
-FILE_PATH = "./data/Astronomy-For-Mere-Mortals-v-23.pdf"
+FILE_PATH = "./data"
 DB_PATH = "./chroma"
 
 def main():
+    build_chroma_db()
+
+def build_chroma_db():
     split_text = split_documents(load_documents())
     update_vector_db(split_text)
 
@@ -17,13 +21,13 @@ def generate_id(content):
     return hashlib.md5(content.encode()).hexdigest()
 
 def load_documents():
-    loader = PyPDFLoader(FILE_PATH)
+    loader = PyPDFDirectoryLoader(FILE_PATH)
     docs = loader.load()
     return docs
 
 def split_documents(docs):
     # Split documents into smaller chunks
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50, length_function=len, is_separator_regex=False)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=80, length_function=len, is_separator_regex=False)
     split_docs = text_splitter.split_documents(docs)
 
     # Add "id" field to chunk metadata
@@ -53,7 +57,6 @@ def update_vector_db(split_docs):
     if new_docs:
         new_ids = [doc.metadata["id"] for doc in new_docs]
         db.add_documents(new_docs, ids=new_ids)
-        db.persist()
 
         print(F"Saved {len(new_docs)} chunks to {DB_PATH}.")
     else:

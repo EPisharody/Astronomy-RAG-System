@@ -1,7 +1,13 @@
 import argparse
 from langchain_chroma import Chroma
 from langchain_ollama import ChatOllama
-from load_data import get_embedding_function
+import load_data
+from transformers import logging
+import logging as py_logging
+
+# Set logging levels
+logging.set_verbosity_error()
+py_logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
 
 DB_PATH = "./chroma"
 
@@ -9,11 +15,19 @@ def main():
     # Parse command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('input_query')
+    parser.add_argument('--clear', action='store_true')
     args = parser.parse_args()
+
+    # Check if --clear flag was included in CLI arguments and clear db accordingly
+    if (args.clear):
+        print("Clearing database...")
+        load_data.clear_database()
     query = args.input_query
 
     # Load db
-    db = Chroma(persist_directory=DB_PATH, embedding_function=get_embedding_function())
+    load_data.build_chroma_db()
+    embedding_function = load_data.get_embedding_function()
+    db = Chroma(persist_directory=DB_PATH, embedding_function=embedding_function)
 
     # Find chunks that relate to query
     results = db.similarity_search_with_score(query, k=3)
@@ -26,10 +40,11 @@ def main():
     
     {context}
     
-    Question: {query}
+    Answer this question based on the above context: {query}
     """
 
     model = ChatOllama(model="mistral")
+    print(prompt)
 
     response = model.invoke(prompt)
     formatted_response = f"Response: {response.content}"
