@@ -1,15 +1,15 @@
 import argparse
 from langchain_chroma import Chroma
 from langchain_ollama import ChatOllama
-import load_data
+from vectorstore.update_chroma import clear_database, build_chroma_db
+from embedding.huggingface_embedding import get_embedding_function
+from config import DB_PATH, OLLAMA_MODEL
 from transformers import logging
 import logging as py_logging
 
 # Set logging levels
 logging.set_verbosity_error()
 py_logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
-
-DB_PATH = "./chroma"
 
 def main():
     # Parse command line arguments
@@ -21,12 +21,12 @@ def main():
     # Check if --clear flag was included in CLI arguments and clear db accordingly
     if (args.clear):
         print("Clearing database...")
-        load_data.clear_database()
+        clear_database()
     query = args.input_query
 
     # Load db
-    load_data.build_chroma_db()
-    embedding_function = load_data.get_embedding_function()
+    build_chroma_db()
+    embedding_function = get_embedding_function()
     db = Chroma(persist_directory=DB_PATH, embedding_function=embedding_function)
 
     # Find chunks that relate to query
@@ -38,7 +38,7 @@ def main():
     context = "\n----------\n".join([doc.page_content for doc, score in results])
     prompt = f"Use only the following context to answer the question: \n\n{context}\n\nAnswer this question based on the above context: {query}\n"
 
-    model = ChatOllama(model="mistral")
+    model = ChatOllama(model=OLLAMA_MODEL)
     print(prompt)
 
     response = model.invoke(prompt)
