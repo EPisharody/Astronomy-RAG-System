@@ -36,12 +36,7 @@ def main():
 
     # Results are in the form: [(Doc1, score1), (doc2, score2) ...]
     context = "\n----------\n".join([doc.page_content for doc, score in results])
-    prompt = f"""Use only the following context to answer the question:
-    
-    {context}
-    
-    Answer this question based on the above context: {query}
-    """
+    prompt = f"Use only the following context to answer the question: \n\n{context}\n\nAnswer this question based on the above context: {query}\n"
 
     model = ChatOllama(model="mistral")
     print(prompt)
